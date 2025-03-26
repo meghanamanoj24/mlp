@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ML Prediction System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .prediction-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .result {
+            font-size: 24px;
+            font-weight: bold;
+            color: #0d6efd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Machine Learning Prediction System</h1>
+        
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <form id="predictionForm">
+                            <div class="mb-3">
+                                <label for="age" class="form-label">Age</label>
+                                <input type="number" class="form-control" id="age" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="experience" class="form-label">Years of Experience</label>
+                                <input type="number" class="form-control" id="experience" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="education_level" class="form-label">Education Level (1-4)</label>
+                                <input type="number" class="form-control" id="education_level" min="1" max="4" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="model_type" class="form-label">Select Model</label>
+                                <select class="form-select" id="model_type" required>
+                                    <option value="slr">Simple Linear Regression (Salary)</option>
+                                    <option value="mlr">Multiple Linear Regression (Salary)</option>
+                                    <option value="poly">Polynomial Regression (Salary)</option>
+                                    <option value="logistic">Logistic Regression (Loan Approval)</option>
+                                    <option value="knn">KNN (Loan Approval)</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Predict</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="prediction-card" id="resultCard" style="display: none;">
+                    <h3 class="text-center">Prediction Result</h3>
+                    <div class="text-center">
+                        <p class="result" id="predictionResult"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('predictionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const data = {
+                age: parseFloat(document.getElementById('age').value),
+                experience: parseFloat(document.getElementById('experience').value),
+                education_level: parseFloat(document.getElementById('education_level').value),
+                model_type: document.getElementById('model_type').value
+            };
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                
+                if (result.error) {
+                    alert(result.error);
+                    return;
+                }
+
+                const resultCard = document.getElementById('resultCard');
+                const predictionResult = document.getElementById('predictionResult');
+                
+                let predictionText = '';
+                if (['slr', 'mlr', 'poly'].includes(result.model_type)) {
+                    predictionText = `Predicted Salary: $${result.prediction.toFixed(2)}`;
+                } else {
+                    predictionText = `Loan Approval: ${result.prediction === 1 ? 'Approved' : 'Rejected'}`;
+                }
+                
+                predictionResult.textContent = predictionText;
+                resultCard.style.display = 'block';
+            } catch (error) {
+                alert('Error making prediction: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html> 
